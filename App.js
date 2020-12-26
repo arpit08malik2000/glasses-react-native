@@ -1,6 +1,6 @@
 //having camera intent
 import React, { Component } from 'react';
-import { Text, View, Platform } from 'react-native';
+import { StyleSheet, Text, View, Platform } from 'react-native';
 import { Camera } from 'expo-camera';
 import * as Permissions from 'expo-permissions';
 
@@ -10,7 +10,7 @@ export default class App extends Component {
 
     this.state = {
       hasPermission: null,
-      camerType: Camera.Constants.Type.front
+      cameraType: Camera.Constants.Type.front
     }
   }
 
@@ -34,18 +34,31 @@ export default class App extends Component {
   render () {
     const { hasPermission } = this.state
     if (hasPermission === null) {
-      return <View />;
+      return (<View style={styles.container} />);
     } else if (hasPermission === false) {
-      return <Text>No access to camera</Text>;
+      return (
+        <View style={styles.container}>
+          <Text>No access to camera</Text>
+        </View>
+      );
     } else {
       return (
-          <View style={{ flex: 1 }}>
-            <Camera 
-              style={{ flex: 1 }} 
-              type={this.state.cameraType}  
-              ref={ref => {this.camera = ref}} />
+        <View style={styles.container}>
+          <Camera 
+            style={{ flex: 1, width: 550 }}
+            type={this.state.cameraType}  
+            ref={ref => {this.camera = ref}} />
         </View>
       );
     }
   }
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});
