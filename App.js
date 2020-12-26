@@ -1,50 +1,51 @@
+//having camera intent
 import React, { Component } from 'react';
-import { StyleSheet } from 'react-native';
-
-import { GLView } from 'expo-gl';
-import * as THREE from 'three';
-import { Renderer } from 'expo-three';
+import { Text, View, Platform } from 'react-native';
+import { Camera } from 'expo-camera';
+import * as Permissions from 'expo-permissions';
 
 export default class App extends Component {
-  _onGLContextCreate = async gl => {
-    const scene = new THREE.Scene()
-    const camera = new THREE.PerspectiveCamera(
-      75, gl.drawingBufferWidth / gl.drawingBufferHeight, 0.1, 1000
-    );
-    const renderer = new Renderer({ gl });
-    renderer.setSize(gl.drawingBufferWidth, gl.drawingBufferHeight);
-      
-    const geometry = new THREE.BoxGeometry();
-    const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 })
+  constructor(props) {
+    super(props)
 
-    const cube = new THREE.Mesh(geometry, material);    
-    scene.add(cube);
-    camera.position.z = 2;
+    this.state = {
+      hasPermission: null,
+      camerType: Camera.Constants.Type.front
+    }
+  }
 
-    const animate = () => {
-      requestAnimationFrame(animate);
-      cube.rotation.x += 0.01;
-      cube.rotation.y += 0.01;
-      renderer.render(scene, camera);
-      gl.endFrameEXP();
-    };
-    animate();
+  componentDidMount() {
+    this.getPermissionsAsync()
+  }
+
+  getPermissionsAsync = async () => {
+    //camera roll permission 
+    if (Platform.OS === 'ios') {
+      const { status } = await Permissions.askAsync(Permissions.CAMERA_ROLL)
+      if (status !== 'granted') {
+        alert('Sorry, we need camera roll permissions to make this work!');
+      }
+    }
+    // Camera Permission
+    const { status } = await Permissions.askAsync(Permissions.CAMERA);
+    this.setState({ hasPermission: status === 'granted' });
   }
 
   render () {
-    return (
-      <GLView 
-        style={{ flex: 1 }}
-        onContextCreate={this._onGLContextCreate} />
-    );
+    const { hasPermission } = this.state
+    if (hasPermission === null) {
+      return <View />;
+    } else if (hasPermission === false) {
+      return <Text>No access to camera</Text>;
+    } else {
+      return (
+          <View style={{ flex: 1 }}>
+            <Camera 
+              style={{ flex: 1 }} 
+              type={this.state.cameraType}  
+              ref={ref => {this.camera = ref}} />
+        </View>
+      );
+    }
   }
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
